@@ -8,10 +8,11 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <ctype.h>
-
+#include <stdbool.h>
 #define MAXPORT 65535 //maximalni cislo portu
 #define MINPORT 1024  //minimalni cislo portu
-
+#define MAXLOGIN 60 //maximalni pocet  loginu
+#define MAXUID 60
 /*
 	struktura parametry "legenda"
 	port - cislo portu
@@ -25,7 +26,10 @@
 typedef struct tparams{
 	int port, l, u, g, n, h, s; //
 	char *servername;
-	char *login;
+	char *login[MAXLOGIN];
+	int uid[MAXUID];
+	int parErr;
+	bool U, G, N, H, S; //klient zada o 
 }TParams;
 
 enum numEcode{
@@ -38,21 +42,27 @@ const char *errcodes[]={
 
 int printError(numErr)
 {
-	fprintf(stderr, "%s\n", numErr);
+	fprintf(stderr, "%s\n", errcodes[numErr]);
 	return -1;
 }
 
-int getParams(int argc, char **argv)
+TParams getParams(int argc, char **argv)
 {
 	TParams param={0, 0, 0, 0, 0, 0, 0, NULL, NULL};
+	param.U, param.G, param.N, param.H, param.S=false;
 	int c;
+	int i=0;	//iterator
+	int j=0;	//iterator
+	int lengthLogin=0;
 	int numOptarg;
+	param.parErr=0;
 	if(argc < 3)
 	{
-		return printError(EARGS);
+		param.parErr=1;
+		return param;
 	}	
 
-	while((c=getopt(argc, argv, "p:h:l:u:GHNS"))!=-1)
+	while((c=getopt(argc, argv, "p:h:l:u:UGHNS"))!=-1)
 	{
 		switch(c)
 		{
@@ -63,7 +73,8 @@ int getParams(int argc, char **argv)
 					param.port=numOptarg;
 				}
 				else{
-					return printError(EARGS);
+					param.parErr=1;
+					return param;
 				}
 				break;
 
@@ -72,42 +83,91 @@ int getParams(int argc, char **argv)
 				  break;
 
 			case 'l':
-					param.login=optarg;
-					printf("login je %s\n", param.login);
-					param.l++;
+					param.login[0]=optarg;
+					
+					optind--;
+					while(optind < argc && *argv[optind] != '-')
+					{
+						param.login[i]=argv[optind];
+						optind++;
+						i++;		
+						param.l++;				
+					}			
+					
 					break;
-			break;
+
 			case 'u':
-			printf("Na radku byla vola 'u' s parametrem %s\n", optarg);
-			break;
+					optind--;
+					 while (optind < argc && *argv[optind] != '-') 
+					 {
+							param.uid[j]=atoi(argv[optind]);
+							
+							if(param.uid[j]==0)
+							{
+								break;
+							}
+							else
+							{
+								j++;
+								optind++;	
+								param.u++;
+							}
+					 }
+					break;
+
+			case 'U':
+						param.U=true;
+						break;
 			case 'G':
-			printf("Na radku byla vola 'G' s parametrem %s\n", optarg);
-			break;
+						param.G=true;
+						break;
 			case 'H':
-			printf("Na radku byla vola 'H' s parametrem %s\n", optarg);
-			break;
+						param.H=true;
+						break;
 			case 'N':
-			printf("Na radku byla vola 'N' s parametrem %s\n", optarg);
-			break;
+						param.N=true;
+						break;
 			case 'S':
-			printf("Na radku byla vola 'S' s parametrem %s\n", optarg);
-			break;
+						param.S=true;
+						break;
 			case '?':
-			printf("neznama volba");
-			break;
+						param.parErr=1;
+						return param;
+						break;
 			default:
-				return 1;
+				param.parErr=1;
+				return param;
 		}
 	}
 
-return 0;
+return param;
 
 }
 
 int main (int argc, char *argv[] )
 {
-  getParams(argc, argv);
+	TParams result;
+  	result=getParams(argc, argv);
 
+  if(result.U)
+  {
+  	printf("chci U\n");
+  }
+
+  if(result.N)
+  {
+  	printf("chci N\n");
+  }
+
+  if(result.H)
+  {
+  	printf("chci H\n");
+  }
+
+  if(result.S)
+  {
+  	printf("chci S\n");
+  }
   //int s, n;
   //struct sockaddr_in sin; struct hostent *hptr;
   //char msg[80] = "Hello World!";
