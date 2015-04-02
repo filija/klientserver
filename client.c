@@ -24,7 +24,7 @@
 	s - logovaci shell
 */
 typedef struct tparams{
-	int port, l, u, g, n, h, s; //
+	int port, l, u;
 	char *servername;
 	char *login[MAXLOGIN];
 	int uid[MAXUID];
@@ -48,7 +48,7 @@ int printError(numErr)
 
 TParams getParams(int argc, char **argv)
 {
-	TParams param={0, 0, 0, 0, 0, 0, 0, NULL, NULL};
+	TParams param={0, 0, 0, NULL, NULL};
 	param.U, param.G, param.N, param.H, param.S=false;
 	int c;
 	int i=0;	//iterator
@@ -149,57 +149,43 @@ int main (int argc, char *argv[] )
 	TParams result;
   	result=getParams(argc, argv);
 
-  if(result.U)
-  {
-  	printf("chci U\n");
-  }
-
-  if(result.N)
-  {
-  	printf("chci N\n");
-  }
-
-  if(result.H)
-  {
-  	printf("chci H\n");
-  }
-
-  if(result.S)
-  {
-  	printf("chci S\n");
-  }
-  //int s, n;
-  //struct sockaddr_in sin; struct hostent *hptr;
-  //char msg[80] = "Hello World!";
-  //if ( argc < 3 ) {
-   // printf ("%s host port\n", argv[0] );   /* input error: need host & port */
-  //  return -1;
-  //}
-  //if ( (s = socket(PF_INET, SOCK_STREAM, 0 ) ) < 0) { /* create socket*/
-   // perror("error on socket");  /* socket error */
-    //return -1;
-  //}
-  //sin.sin_family = PF_INET;              /*set protocol family to Internet */
-  //sin.sin_port = htons(atoi(argv[2]));  /* set port no. */
-  //if ( (hptr =  gethostbyname(argv[1]) ) == NULL){
-   // fprintf(stderr, "gethostname error: %s", argv[1]);
-   // return -1;
-  // }
-  //memcpy( &sin.sin_addr, hptr->h_addr, hptr->h_length);
-  //if (connect (s, (struct sockaddr *)&sin, sizeof(sin) ) < 0 ){
-  //  perror("error on connect"); return -1;   /* connect error */
- // }
-  //if ( write(s, msg, strlen(msg) +1) < 0 ) {  /* send message to server */
- //   perror("error on write");    return -1; /*  write error */
- // }
-  //if ( ( n = read(s, msg, sizeof(msg) ) ) <0) {  /* read message from server */
-  //  perror("error on read"); return -1; /*  read error */
-  //}
- // printf ("received %d bytes: %s\n", n, msg);  /* print message to screen */
-  //* close connection, clean up socket */
-  //if (close(s) < 0) { 
-  //  perror("error on close");   /* close error */
-  //  return -1;
- // }*/
- // return 0;
+  	printf("cislo portu je: %d\n", result.port);
+  	printf("hostname je: %s\n", result.servername);
+  	printf("login je: %s\n", result.login[0]);
+  	printf("pocet loginu je %d\n", result.l);
+  	
+  	int s, n;
+  	struct sockaddr_in sin; struct hostent *hptr;
+  	char msg[80] = "Hello World!";
+  	if ( argc < 3 ) {
+   		 printf ("%s host port\n", argv[0] );   /* input error: need host & port */
+  		 return -1;
+  	}
+  	if ( (s = socket(PF_INET, SOCK_STREAM, 0 ) ) < 0) { /* create socket*/
+    	perror("error on socket");  /* socket error */
+    	return -1;
+  	}
+  	sin.sin_family = PF_INET;              /*set protocol family to Internet */
+  	sin.sin_port = htons(atoi(argv[2]));  /* set port no. */
+  	if ( (hptr =  gethostbyname(argv[1]) ) == NULL){
+   	 fprintf(stderr, "gethostname error: %s", argv[1]);
+   	 return -1;
+  	 }
+  	memcpy( &sin.sin_addr, hptr->h_addr, hptr->h_length);
+  	if (connect (s, (struct sockaddr *)&sin, sizeof(sin) ) < 0 ){
+  	  perror("error on connect"); return -1;   /* connect error */
+ 	 }
+  	if ( write(s, msg, strlen(msg) +1) < 0 ) {  /* send message to server */
+ 	   perror("error on write");    return -1; /*  write error */
+ 	 }
+  	if ( ( n = read(s, msg, sizeof(msg) ) ) <0) {  /* read message from server */
+  	  perror("error on read"); return -1; /*  read error */
+  	}
+ 	 printf ("received %d bytes: %s\n", n, msg);  /* print message to screen */
+  	/* close connection, clean up socket */
+  	if (close(s) < 0) { 
+  	  perror("error on close");   /* close error */
+  	  return -1;
+	} 
+ 	 return 0;
 }
