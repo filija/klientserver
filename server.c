@@ -8,10 +8,13 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAXPORT 65535 //maximalni cislo portu
 #define MINPORT 1024  //minimalni cislo portu
-
+#define MAXLOGIN 60 //maximalni pocet loginu
+#define MAXUID 60 
+#define MAXMSG 200 //maximalni delka zpravy
 enum numEcode
 {
   EARGS=0,
@@ -40,6 +43,13 @@ const char *errcodes[]={
   "Pripojeni se nezdarilo uzavrit", //ECLOSE
 };
 
+typedef struct tinfo{
+	char *login[MAXLOGIN];
+	int uid[MAXUID];
+	bool U, G, N, H, S; //klient zada o 
+	unsigned int countOfId;
+}TInfo;
+
 int printError(int numErr) //tisk chyb
 {
   fprintf(stderr, "%s\n", errcodes[numErr]);
@@ -65,8 +75,7 @@ int getParams(int argc, char **argv)
 
         else{
           return printError(EARGS);       
-        }
-        
+        }      
       }
 
       else{
@@ -104,13 +113,32 @@ int connectServer(int port, int *sock, struct sockaddr_in *server)  //vytvoreni 
     return CONNECTOK;
 }
 
+TInfo unparsed(char *string)
+{
+	int i=0;
+	TInfo info;
+	while(string[i]!='\0')
+	{
+		if(string[i]=='!')
+		{
+			printf("znak za ! je %c\n", string[i+1]);
+			info.countOfId=string[i+1]-'0';
+			break;
+		}
+		i++;
+	}
+	
+	
+}
+
 int main(int argc, char **argv)
 {
   int sinlen, t, sock, port; 
   struct sockaddr_in sin;
   int j;
   struct hostent * hp;
-  char msg[80];
+  char msg[MAXMSG];
+  TInfo info; //rozdeleny retezec do datovych typu
 
   if((port=getParams(argc, argv))!=EARGS)
   {
@@ -135,7 +163,9 @@ int main(int argc, char **argv)
           { 
               return printError(EREAD);
           }
-          printf("length of message is %d\nmessage from client is: %s\n",strlen(msg),msg);
+	
+ 				info=unparsed(msg);
+
           if ( write(t, msg, strlen(msg) ) < 0 ) 
           { 
                 return printError(EWRITE);
