@@ -202,76 +202,6 @@ char *concatenate(TParams result)
 		return NULL;
 	}
 
-	if(result.U)
-	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "1");
-	}
-
-	else{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "0");
-	}
-
-	if(result.G)
-	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "1");
-	}
-
-	else{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "0");
-	}
-
-	if(result.N)
-	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "1");
-	}
-
-	else{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "0");
-	}
-
-	if(result.H)
-	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "1");
-	}
-
-	else{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "0");
-	}
-
-	if(result.S)
-	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "1");
-	}
-
-	else{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, "0");
-	}
-
-
-	if(result.l!=0)
-	{
-		tmp=strcat(tmp, "!");
-		tmp=strcat(tmp, countOfLogin);
-		tmp=strcat(tmp, "!");		
-	}
-
-	if(result.u!=0)
-	{
-		tmp=strcat(tmp, "!");
-		tmp=strcat(tmp, countOfUid);		
-		tmp=strcat(tmp, "!");	
-	}
-
     return tmp;
 }
 
@@ -279,7 +209,7 @@ int main (int argc, char *argv[] )
 {
 	TParams result;
   	result=getParams(argc, argv);
-
+  	int i;
   	int s, n;
   	struct sockaddr_in sin; struct hostent *hptr;
   	char *msg;
@@ -309,11 +239,12 @@ int main (int argc, char *argv[] )
   	  		perror("error on connect"); return -1;   /* connect error */
  	 	}
 
-  		if ( write(s, msg, strlen(msg) +1) < 0 ) 
-  		{ 
- 	   		perror("error on write");    return -1; /*  write error */
- 	 	}
-  	
+  			if ( write(s, msg, strlen(msg) +1) < 0 ) 
+  			{ 
+ 	   			perror("error on write");    return -1; /*  write error */
+ 	 		}
+ 	 	
+
   		if ( ( n = read(s, msg, sizeof(msg) ) ) <0) 
   		{ 
   	  		perror("error on read"); return -1; /*  read error */
