@@ -9,12 +9,14 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pwd.h>
 
 #define MAXPORT 65535 //maximalni cislo portu
 #define MINPORT 1024  //minimalni cislo portu
 #define MAXLOGIN 60 //maximalni pocet loginu
 #define MAXUID 60 
 #define MAXMSG 200 //maximalni delka zpravy
+#define LENGTHLOGIN 10 //maximalni delka jednoho loginu
 enum numEcode
 {
   EARGS=0,
@@ -28,6 +30,7 @@ enum numEcode
   EWRITE,
   EPRINT,
   ECLOSE,
+  EFILE,
 };
 
 const char *errcodes[]={
@@ -41,6 +44,7 @@ const char *errcodes[]={
   "Cteni selhalo", //EREAD
   "Zapis selhal", //EWRITE
   "Pripojeni se nezdarilo uzavrit", //ECLOSE
+  "Soubor se nepodarilo otevrit" //EFILE
 };
 
 typedef struct tinfo{
@@ -117,17 +121,60 @@ TInfo unparsed(char *string)
 {
 	int i=0;
 	TInfo info;
+	char login[LENGTHLOGIN];
+	int j=0;
+	int tmp=0;
+	
 	while(string[i]!='\0')
 	{
-		if(string[i]=='!')
-		{
-			printf("znak za ! je %c\n", string[i+1]);
-			info.countOfId=string[i+1]-'0';
-			break;
+		if(string[i]==':')
+	    {
+	    	login[tmp]='\0';
+			info.login[j]=login;
+			j++;	
+			i++;
+			tmp=0;			
+		}	
+
+		else{
+			login[tmp]=string[i];
+			i++;
+			tmp++;
 		}
-		i++;
+	}	
+	//printf("info je: %s\n", info.login[1]);
+	//fokoncit a upravit
+}
+
+char *searchInEtc(TInfo info)
+{
+	info.login[0]="root";
+	FILE *fptr;
+	char line[200];
+
+	if((fptr=fopen("/etc/passwd", "r"))==NULL)
+	{
+		printError(EFILE);
 	}
-	
+
+	else{
+			while((fgets(line,sizeof(line),fptr))!=NULL)
+			{
+				if(strcmp(line, info.login[0])==0)
+				{
+
+					printf("nasel\n");
+					break;
+				}
+
+				else{
+					printf("nenasel\n");
+				}
+				printf("line je %s\n", line);
+			}
+			fclose(fptr);
+	}
+
 	
 }
 
@@ -139,6 +186,9 @@ int main(int argc, char **argv)
   struct hostent * hp;
   char msg[MAXMSG];
   TInfo info; //rozdeleny retezec do datovych typu
+  pid_t pid;
+  char *result;
+ 
 
   if((port=getParams(argc, argv))!=EARGS)
   {
@@ -159,18 +209,22 @@ int main(int argc, char **argv)
           j=(int)(hp->h_length);
           printf( "From %s (%s) :%d.\n",inet_ntoa(sin.sin_addr), hp->h_name, ntohs(sin.sin_port) );
           bzero(msg,sizeof(msg));
+        
+        
           if ( read(t, msg, sizeof(msg) ) <0) 
           { 
               return printError(EREAD);
           }
-	
- 				info=unparsed(msg);
+
+          	info=unparsed(msg);   
+
+          	result=searchInEtc(info);	
 
           if ( write(t, msg, strlen(msg) ) < 0 ) 
           { 
                 return printError(EWRITE);
-          } 
-
+          }
+          
           if(close(t)<0)
           {
             return printError(ECLOSE);
