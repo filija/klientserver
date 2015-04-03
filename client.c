@@ -34,10 +34,12 @@ typedef struct tparams{
 
 enum numEcode{
 	EARGS=0, //chybne argumenty
+	ECONCATENATE,
 };
 
 const char *errcodes[]={
 	"chybne argumenty", //EARGS
+	"nebyl zadan ani login, ani uid", //ECONCATENATE
 };
 
 int printError(numErr)
@@ -148,40 +150,107 @@ char *concatenate(TParams result)
 {
 	char *tmp;
 	int i;
+	char countOfLogin[2]; // pocet zadanych loginu
+	char countOfUid[2]; //pocet zadanych uid
 
-  if(result.u!=0)
-  {
-	if(result.u > 1)
-	{	
-		for(i=1; i<result.u; i++)
-		{	
-			tmp=strcat(tmp, ":");
-			tmp=strcat(tmp, result.uid[i]);
+	sprintf(countOfLogin, "%d", result.l);
+	sprintf(countOfUid, "%d", result.u);
+
+	if(result.u != 0)
+	{
+		if(result.u==1)
+		{
+			tmp=result.uid[0];
+			tmp=strcat(tmp, ":1");
 		}
 
-		printf("tmp je....%s\n", tmp);
+		else if(result.u > 1)
+		{
+			tmp=result.uid[0];
+			for(i=1; i<result.u; i++)
+			{
+				tmp=strcat(tmp, ":");
+				tmp=strcat(tmp, result.uid[i]);
+			}
+				tmp=strcat(tmp, ":");
+				tmp=strcat(tmp, countOfUid);
+		}
+
+		else{
+			return NULL;
+		}
 	}
 
-	else if(result.u==1)
-	{
-		tmp=strcat(result.uid[0], ":");
-	}
-  }
+	else if(result.u==0 && result.l!=0)
+	{	
+		if(result.l==1)
+		{
+			tmp=result.login[0];
+			tmp=strcat(tmp, ":1");
+		}
 
-	if(result.l>1)
-	{
-			return "sdad";
-	}
-
-	else if(result.l==1)
-	{
-		tmp=result.login[0];
-		tmp=strcat(tmp, ":");
+		else if(result.l > 1)
+		{
+			tmp=result.login[0];
+			for(i=1; i<result.l; i++)
+			{
+				tmp=strcat(tmp, ":");
+				tmp=strcat(tmp, result.login[i]);
+			}
+			tmp=strcat(tmp, ":");
+			tmp=strcat(tmp, countOfLogin);
+		}
 		
 	}
-	printf("v tmp je: %s\n", tmp);
-	return tmp;
 
+	else{
+		return NULL;
+	}
+
+	if(result.U)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "0");
+	}
+
+	if(result.G)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "0");
+	}
+
+	if(result.N)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "0");
+	}
+
+	if(result.S)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "0");
+	}
+			return tmp;
 }
 
 int main (int argc, char *argv[] )
@@ -189,13 +258,12 @@ int main (int argc, char *argv[] )
 	TParams result;
   	result=getParams(argc, argv);
 
-
   	int s, n;
   	struct sockaddr_in sin; struct hostent *hptr;
   	char *msg;
 
   	msg=concatenate(result);
-  	
+  	printf("msg je %s\n", msg);	
   	if(result.parErr!=1)
   	{
   		if ( (s = socket(PF_INET, SOCK_STREAM, 0 ) ) < 0)
