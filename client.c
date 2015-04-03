@@ -156,24 +156,23 @@ char *concatenate(TParams result)
 	sprintf(countOfLogin, "%d", result.l);
 	sprintf(countOfUid, "%d", result.u);
 
+
 	if(result.u != 0)
 	{
 		if(result.u==1)
 		{
 			tmp=result.uid[0];
-			tmp=strcat(tmp, ":1");
+			tmp=strcat(tmp, ":");
 		}
 
 		else if(result.u > 1)
 		{
-			tmp=result.uid[0];
+			tmp=strcat(tmp, result.uid[0]);
 			for(i=1; i<result.u; i++)
 			{
 				tmp=strcat(tmp, ":");
 				tmp=strcat(tmp, result.uid[i]);
 			}
-				tmp=strcat(tmp, ":");
-				tmp=strcat(tmp, countOfUid);
 		}
 
 		else{
@@ -186,7 +185,6 @@ char *concatenate(TParams result)
 		if(result.l==1)
 		{
 			tmp=result.login[0];
-			tmp=strcat(tmp, ":1");
 		}
 
 		else if(result.l > 1)
@@ -197,8 +195,6 @@ char *concatenate(TParams result)
 				tmp=strcat(tmp, ":");
 				tmp=strcat(tmp, result.login[i]);
 			}
-			tmp=strcat(tmp, ":");
-			tmp=strcat(tmp, countOfLogin);
 		}
 		
 	}
@@ -240,6 +236,17 @@ char *concatenate(TParams result)
 		tmp=strcat(tmp, "0");
 	}
 
+	if(result.H)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, "0");
+	}
+
 	if(result.S)
 	{
 		tmp=strcat(tmp, ":");
@@ -250,7 +257,21 @@ char *concatenate(TParams result)
 		tmp=strcat(tmp, ":");
 		tmp=strcat(tmp, "0");
 	}
-			return tmp;
+
+
+	if(result.l!=0)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, countOfLogin);		
+	}
+
+	if(result.u!=0)
+	{
+		tmp=strcat(tmp, ":");
+		tmp=strcat(tmp, countOfUid);			
+	}
+
+    return tmp;
 }
 
 int main (int argc, char *argv[] )
