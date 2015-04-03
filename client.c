@@ -196,7 +196,6 @@ char *concatenate(TParams result)
 				tmp=strcat(tmp, result.login[i]);
 			}
 		}
-		
 	}
 
 	else{
@@ -261,14 +260,16 @@ char *concatenate(TParams result)
 
 	if(result.l!=0)
 	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, countOfLogin);		
+		tmp=strcat(tmp, "!");
+		tmp=strcat(tmp, countOfLogin);
+		tmp=strcat(tmp, "!");		
 	}
 
 	if(result.u!=0)
 	{
-		tmp=strcat(tmp, ":");
-		tmp=strcat(tmp, countOfUid);			
+		tmp=strcat(tmp, "!");
+		tmp=strcat(tmp, countOfUid);		
+		tmp=strcat(tmp, "!");	
 	}
 
     return tmp;
