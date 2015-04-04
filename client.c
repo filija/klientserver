@@ -29,7 +29,7 @@ typedef struct tparams{
 	char *login[MAXLOGIN];
 	char *uid[MAXUID];
 	int parErr;
-	bool U, G, N, H, S; //klient zada o 
+	bool L, U, G, N, H, S; //klient zada o 
 }TParams;
 
 enum numEcode{
@@ -64,7 +64,7 @@ TParams getParams(int argc, char **argv)
 		return param;
 	}	
 
-	while((c=getopt(argc, argv, "p:h:l:u:UGHNS"))!=-1)
+	while((c=getopt(argc, argv, "p:h:l:u:LUGHNS"))!=-1)
 	{
 		switch(c)
 		{
@@ -116,6 +116,10 @@ TParams getParams(int argc, char **argv)
 							}
 					 }
 					break;
+			
+			case 'L':
+		    			param.L=true;
+		    			break;
 
 			case 'U':
 						param.U=true;
@@ -199,7 +203,62 @@ char *concatenate(TParams result)
 	}
 
 	else{
-		return NULL;
+	return NULL;
+	}
+
+			tmp=strcat(tmp, "$");
+	if(result.L)
+	{
+		tmp=strcat(tmp, ":1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
+	}
+
+	if(result.U)
+	{
+		tmp=strcat(tmp, ":1");	
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
+	}
+
+	if(result.G)
+	{
+		tmp=strcat(tmp, ":1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
+	}
+
+	if(result.N)
+	{
+		tmp=strcat(tmp, ":1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
+	}
+
+	if(result.H)
+	{
+		tmp=strcat(tmp, ":1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
+	}
+
+	if(result.S)
+	{
+		tmp=strcat(tmp, ":1");
+	}
+
+	else{
+		tmp=strcat(tmp, ":0");
 	}
 
     return tmp;
@@ -215,7 +274,7 @@ int main (int argc, char *argv[] )
   	char *msg;
 
   	msg=concatenate(result);
-  	printf("msg je %s\n", msg);	
+
   	if(result.parErr!=1)
   	{
   		if ( (s = socket(PF_INET, SOCK_STREAM, 0 ) ) < 0)
