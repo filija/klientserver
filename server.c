@@ -50,7 +50,7 @@ const char *errcodes[]={
 typedef struct tinfo{
 	char *login[MAXLOGIN];
 	int uid[MAXUID];
-	bool U, G, N, H, S; //klient zada o 
+	bool L, U, G, N, H, S; //klient zada o 
 	unsigned int countOfId;
 }TInfo;
 
@@ -120,62 +120,81 @@ int connectServer(int port, int *sock, struct sockaddr_in *server)  //vytvoreni 
 TInfo unparsed(char *string)
 {
 	int i=0;
-	TInfo info;
-	char login[LENGTHLOGIN];
-	int j=0;
-	int tmp=0;
-	
-	while(string[i]!='\0')
-	{
-		if(string[i]==':')
-	    {
-	    	login[tmp]='\0';
-			info.login[j]=login;
-			j++;	
-			i++;
-			tmp=0;			
-		}	
+  TInfo info;
+  char login[LENGTHLOGIN];
+  int j=0;
+  int k;
+  int tmp=0;
 
-		else{
-			login[tmp]=string[i];
-			i++;
-			tmp++;
-		}
-	}	
-	//printf("info je: %s\n", info.login[1]);
-	//fokoncit a upravit
+  while(string[i]!='$')
+  {
+    if(string[i]==':')
+    {
+      login[tmp]='\0';
+      info.login[j]=login;
+      j++;
+      i++;
+      tmp=0;
+
+      for(k=0; k<LENGTHLOGIN; k++) //vynulovani pomocneho loginu
+      {
+          login[k]='\0';
+      }    
+
+        printf("login je:%s\n", info.login[0]);
+    }
+
+    else{
+        login[tmp]=string[i];
+        i++;
+        tmp++;
+    }
+  }
+
+  if(string[i+2]=='1')
+  { 
+    info.L=true;
+    i=i+2;
+  }
+
+  if(string[i+2]=='1')
+  {
+    info.U=true;
+    i=i+2;
+  }
+
+  if(string[i+2]=='1')
+  { 
+    info.G=true;
+    i=i+2;
+  }
+
+  if(string[i+2]=='1')
+  { 
+    info.N=true;
+    i=i+2;
+  }
+
+  if(string[i+2]=='1')
+  { 
+    info.H=true;
+    i=i+2;
+  }
+
+  if(string[i+2]=='1')
+  { 
+    info.S=true;
+    i=i+2;
+  }
+
+  info.countOfId=j;
+  printf("%s\n", info.login[0]);
+  return info;
 }
 
 char *searchInEtc(TInfo info)
 {
-	info.login[0]="root";
-	FILE *fptr;
-	char line[200];
-
-	if((fptr=fopen("/etc/passwd", "r"))==NULL)
-	{
-		printError(EFILE);
-	}
-
-	else{
-			while((fgets(line,sizeof(line),fptr))!=NULL)
-			{
-				if(strcmp(line, info.login[0])==0)
-				{
-
-					printf("nasel\n");
-					break;
-				}
-
-				else{
-					printf("nenasel\n");
-				}
-				printf("line je %s\n", line);
-			}
-			fclose(fptr);
-	}
-
-	
+    printf("%s\n", info.login[0]);
 }
 
 int main(int argc, char **argv)
@@ -189,7 +208,6 @@ int main(int argc, char **argv)
   pid_t pid;
   char *result;
  
-
   if((port=getParams(argc, argv))!=EARGS)
   {
     printf("cislo portu je: %d\n", port);
@@ -217,8 +235,7 @@ int main(int argc, char **argv)
           }
 
           	info=unparsed(msg);   
-
-          	result=searchInEtc(info);	
+            result=searchInEtc(info);	
 
           if ( write(t, msg, strlen(msg) ) < 0 ) 
           { 
