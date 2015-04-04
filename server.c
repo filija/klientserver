@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pwd.h>
+#include <limits.h>
 
 #define MAXPORT 65535 //maximalni cislo portu
 #define MINPORT 1024  //minimalni cislo portu
@@ -53,6 +54,7 @@ typedef struct tinfo{
 	bool L, U, G, N, H, S; //klient zada o 
 	unsigned int countOfId;
 }TInfo;
+
 
 int printError(int numErr) //tisk chyb
 {
@@ -127,11 +129,12 @@ TInfo unparsed(char *string)
   int tmp=0;
 
   while(string[i]!='$')
-  {
+  { 
     if(string[i]==':')
     {
       login[tmp]='\0';
-      info.login[j]=login;
+      info.login[j]=malloc(sizeof(char *));
+      strcpy(info.login[j], login);
       j++;
       i++;
       tmp=0;
@@ -139,9 +142,7 @@ TInfo unparsed(char *string)
       for(k=0; k<LENGTHLOGIN; k++) //vynulovani pomocneho loginu
       {
           login[k]='\0';
-      }    
-
-        printf("login je:%s\n", info.login[0]);
+      }        
     }
 
     else{
@@ -188,13 +189,73 @@ TInfo unparsed(char *string)
   }
 
   info.countOfId=j;
-  printf("%s\n", info.login[0]);
   return info;
 }
 
 char *searchInEtc(TInfo info)
-{
-    printf("%s\n", info.login[0]);
+{  
+    int i=0;
+    int j;
+    struct passwd *pwd;
+    char *buffer;
+    char *returner=malloc(MAXMSG*sizeof(char*));
+    
+      setpwent();
+
+        while((pwd=getpwent())!=NULL)
+        {
+            if(strcmp(info.login[i], pwd->pw_name)==0)
+            {
+                break;
+            }          
+        }                
+          if(info.L)
+          { 
+              strcat(returner, pwd->pw_name);
+              strcat(returner, " ");
+
+          }
+
+          if(info.U)
+          {    
+              sprintf(buffer, "%i", pwd->pw_uid);
+              strcat(returner, buffer);
+              strcat(returner, " ");
+
+          }
+
+          if(info.G)
+          {
+            sprintf(buffer, "%i", pwd->pw_gid);
+            strcat(returner, buffer);
+            strcat(returner, " ");
+
+          }
+
+          if(info.N)
+          {
+              strcat(returner, pwd->pw_gecos);
+              strcat(returner, " ");
+
+          }
+
+          if(info.H)
+          {
+              strcat(returner, pwd->pw_dir);
+              strcat(returner, " ");
+
+          }
+
+          if(info.S)
+          {
+              strcat(returner, pwd->pw_shell);
+              strcat(returner, " ");
+
+          }
+
+       endpwent();   
+    
+    return returner;  
 }
 
 int main(int argc, char **argv)
@@ -207,6 +268,7 @@ int main(int argc, char **argv)
   TInfo info; //rozdeleny retezec do datovych typu
   pid_t pid;
   char *result;
+  int i;
  
   if((port=getParams(argc, argv))!=EARGS)
   {
@@ -236,6 +298,12 @@ int main(int argc, char **argv)
 
           	info=unparsed(msg);   
             result=searchInEtc(info);	
+            printf("%s\n", result);
+
+            for(i=0; i<info.countOfId; i++)
+            {
+              free(info.login[i]);
+            }
 
           if ( write(t, msg, strlen(msg) ) < 0 ) 
           { 
