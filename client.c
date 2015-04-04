@@ -206,7 +206,7 @@ char *concatenate(TParams result)
 	return NULL;
 	}
 
-			tmp=strcat(tmp, "$");
+			tmp=strcat(tmp, ":$");
 	if(result.L)
 	{
 		tmp=strcat(tmp, ":1");
