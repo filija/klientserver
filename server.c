@@ -49,10 +49,11 @@ const char *errcodes[]={
 };
 
 typedef struct tinfo{
-	char *login[MAXLOGIN];
-	int uid[MAXUID];
-	bool L, U, G, N, H, S; //klient zada o 
-	unsigned int countOfId;
+  char *login[MAXLOGIN];
+  int uid[MAXUID];
+  bool L, U, G, N, H, S; //klient zada o 
+  unsigned int countOfId;
+  char loguid;
 }TInfo;
 
 
@@ -121,7 +122,7 @@ int connectServer(int port, int *sock, struct sockaddr_in *server)  //vytvoreni 
 
 TInfo unparsed(char *string)
 {
-	int i=0;
+  int i=0;
   TInfo info;
   char login[LENGTHLOGIN];
   int j=0;
@@ -188,6 +189,15 @@ TInfo unparsed(char *string)
     i=i+2;
   }
 
+  if(string[i+2]=='l')
+  { 
+    info.loguid='l';
+  }
+
+  else{
+      info.loguid='u';
+  }
+
   info.countOfId=j;
   return info;
 }
@@ -199,15 +209,28 @@ char *searchInEtc(TInfo info)
     struct passwd *pwd;
     char *buffer;
     char *returner=malloc(MAXMSG*sizeof(char*));
-    
+
       setpwent();
 
         while((pwd=getpwent())!=NULL)
         {
-            if(strcmp(info.login[i], pwd->pw_name)==0)
+          if(info.loguid='l')
+          {
+            if(strcmp(info.login[j], pwd->pw_name)==0)
             {
                 break;
-            }          
+            }
+          }
+
+          else if(info.loguid='u')
+          {
+              sprintf(buffer, "%i", pwd->pw_uid);
+
+            if(strcmp(info.login[j], buffer)==0)
+            {
+                break;
+            }
+          }            
         }                
           if(info.L)
           { 
@@ -269,14 +292,13 @@ int main(int argc, char **argv)
   pid_t pid;
   char *result;
   int i;
- 
+  long p;
   if((port=getParams(argc, argv))!=EARGS)
   {
     printf("cislo portu je: %d\n", port);
     if(connectServer(port, &sock, &sin)==CONNECTOK)
     {
-      printf("pripojeni se zdarilo\n");
-        sinlen=sizeof(sin);
+       sinlen=sizeof(sin);
 
         while(1)
         { //prijmani noveho pripojeni od klienta
@@ -290,43 +312,54 @@ int main(int argc, char **argv)
           printf( "From %s (%s) :%d.\n",inet_ntoa(sin.sin_addr), hp->h_name, ntohs(sin.sin_port) );
           bzero(msg,sizeof(msg));
         
-        
+          if(pid=fork()>0)
+          {
+            if(close(t)<0)
+            {
+              return printError(ECLOSE);
+            }
+          }
+
+          else{
+            p=getpid();
+
           if ( read(t, msg, sizeof(msg) ) <0) 
           { 
               return printError(EREAD);
           }
-
-          	info=unparsed(msg);   
-            result=searchInEtc(info);	
+            info=unparsed(msg);   
+            result=searchInEtc(info); 
             printf("%s\n", result);
+            strcpy(msg, result);
 
             for(i=0; i<info.countOfId; i++)
             {
               free(info.login[i]);
             }
-
-          if ( write(t, msg, strlen(msg) ) < 0 ) 
+              
+          if ( write(t, msg, strlen(msg)+1 ) < 0 ) 
           { 
                 return printError(EWRITE);
           }
-          
+
           if(close(t)<0)
           {
             return printError(ECLOSE);
           }
 
         }
-        return 0; 
-    }
+        return 0;
 
+        } 
+    }
+ 
     if(close(sock)<0)
     {
       return printError(ECLOSE);
     }
     else{
       return printError(ECONNECT);
-    }
-       
+    }       
   }
 
   else{
