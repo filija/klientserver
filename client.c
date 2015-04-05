@@ -13,6 +13,7 @@
 #define MINPORT 1024  //minimalni cislo portu
 #define MAXLOGIN 60 //maximalni pocet  loginu
 #define MAXUID 60
+#define MAXMSG 200
 /*
 	struktura parametry "legenda"
 	port - cislo portu
@@ -152,7 +153,7 @@ return param;
 
 char *concatenate(TParams result)
 {
-	char *tmp;
+	char *tmp=malloc(sizeof(char *));
 	int i;
 	char countOfLogin[2]; // pocet zadanych loginu
 	char countOfUid[2]; //pocet zadanych uid
@@ -160,18 +161,15 @@ char *concatenate(TParams result)
 	sprintf(countOfLogin, "%d", result.l);
 	sprintf(countOfUid, "%d", result.u);
 
-
 	if(result.u != 0)
 	{
 		if(result.u==1)
 		{
-			tmp=result.uid[0];
-			tmp=strcat(tmp, ":");
+			strcpy(tmp, result.uid[0]);
 		}
 
 		else if(result.u > 1)
-		{
-			tmp=strcat(tmp, result.uid[0]);
+		{	
 			for(i=1; i<result.u; i++)
 			{
 				tmp=strcat(tmp, ":");
@@ -182,13 +180,15 @@ char *concatenate(TParams result)
 		else{
 			return NULL;
 		}
+
+		
 	}
 
 	else if(result.u==0 && result.l!=0)
 	{	
 		if(result.l==1)
 		{
-			tmp=result.login[0];
+			strcpy(tmp, result.login[0]);
 		}
 
 		else if(result.l > 1)
@@ -200,6 +200,10 @@ char *concatenate(TParams result)
 				tmp=strcat(tmp, result.login[i]);
 			}
 		}
+
+		else{
+			return NULL;
+		}		
 	}
 
 	else{
@@ -261,6 +265,20 @@ char *concatenate(TParams result)
 		tmp=strcat(tmp, ":0");
 	}
 
+	if(result.u!=0)
+	{
+		tmp=strcat(tmp, ":u");
+	}
+
+	else if(result.l!=0 && result.u==0)
+	{
+		tmp=strcat(tmp, ":l");
+	}
+
+	else{
+		return "Nebyl zadan prepinac -l ani -u";
+	}
+
     return tmp;
 }
 
@@ -268,10 +286,11 @@ int main (int argc, char *argv[] )
 {
 	TParams result;
   	result=getParams(argc, argv);
-  	int i;
+  	int i, k;
   	int s, n;
   	struct sockaddr_in sin; struct hostent *hptr;
   	char *msg;
+    char print[MAXMSG];
 
   	msg=concatenate(result);
 
@@ -302,15 +321,21 @@ int main (int argc, char *argv[] )
   			{ 
  	   			perror("error on write");    return -1; /*  write error */
  	 		}
+ 	 		bzero(msg, sizeof(msg));
+
+  		while( (n = read(s, msg, sizeof(msg)) > 0))
+			{
+				for(k=0; k<8; k++)
+				{
+					print[k]=msg[k];
+				}
+				printf ("%s", print); 
+			}
+			printf ("%s\n", print);  /* print message to screen */  			
+  		
  	 	
-
-  		if ( ( n = read(s, msg, sizeof(msg) ) ) <0) 
-  		{ 
-  	  		perror("error on read"); return -1; /*  read error */
-  		}
-
- 	 	printf ("received %d bytes: %s\n", n, msg);  /* print message to screen */
   		/* close connection, clean up socket */
+
   		if (close(s) < 0) 
   		{ 
   	  		perror("error on close");   /* close error */
